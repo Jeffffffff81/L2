@@ -21,24 +21,45 @@ module FlashReader_tb();
 	//interface to slowClockTrigger:
 	logic			 			startsamplenow; //this is not edge sensitive
 	
+	FlashReader dut(
+	 .clk(clk),
+	 .rst(rst),
+	 .flsh_waitrequest(flsh_waitrequest),
+	 .flsh_read(flsh_read),
+	 .flsh_readdata(flsh_readdata),
+	 .flsh_readdatavalid(flsh_readdatavalid),
+	 .flsh_byteenable(flsh_byteenable),
+	 .address_inc(address_inc),
+	 .address_dec(address_dec),
+	 .address_rst(address_rst),
+	 .audio_enable(audio_enable),
+	 .audio_out(audio_out),
+	 .startsamplenow(startsamplenow)
+	);
   
   initial begin
     forever begin
+      rst = 1;
       clk = 1; #1;
       clk = 0; #1;
-      rst = 1;
     end
   end
   
   initial begin
+    flsh_waitrequest = 0;
+    flsh_readdata = 32'hDEADBEEF;
+    flsh_readdatavalid = 0;
     startsamplenow = 0;
     #10;
     startsamplenow = 1;
     #2;
     startsamplenow = 0;
+    #10;
+    flsh_readdatavalid = 1;
+    #2;
+    flsh_readdatavalid= 0;
     #10
     $stop;
     
-    $stop;
   end
 endmodule
