@@ -31,8 +31,9 @@ module MusicPlayer_tb();
   
   initial begin
     startsamplenow = 0;
-    flsh_readdata = 32'hdeadbeef;
     flsh_waitrequest = 0;
+    
+    flsh_readdata = 32'hdeadbeef;
     flsh_readdatavalid = 0;
     #20;
     startsamplenow = 1;
@@ -43,6 +44,36 @@ module MusicPlayer_tb();
     #2;
     flsh_readdatavalid = 0;
     #20;
+    
+    startsamplenow = 1;
+    #2;
+    startsamplenow = 0;
+    #40;
+    flsh_readdatavalid = 1;
+    #2;
+    flsh_readdatavalid = 0;
+    #20;
+    
+    flsh_readdata = 32'haaaabbbb;
+    flsh_readdatavalid = 0;
+    #20;
+    startsamplenow = 1;
+    #2;
+    startsamplenow = 0;
+    #40;
+    flsh_readdatavalid = 1;
+    #2;
+    flsh_readdatavalid = 0;
+    #20;
+    
+    startsamplenow = 1;
+    #2;
+    startsamplenow = 0;
+    #40;
+    flsh_readdatavalid = 1;
+    #2;
+    flsh_readdatavalid = 0;
+    #20;    
     
     $stop;
   end

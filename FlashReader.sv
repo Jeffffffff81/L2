@@ -34,7 +34,7 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 	//for example, we have no idea what readdata may be, and that must be passed as an output.
 	//instead, we will register the outputs to avoid glitches.
 	
-   logic[3:0] state;
+  reg[3:0] state = 0;
 	parameter idlea = 4'b0000;
 	parameter a1 = 4'b0001;
 	parameter a2 = 4'b0010;

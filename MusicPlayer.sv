@@ -36,7 +36,7 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address
 	);
 	
 	//Address controller. Connected between FlashReader and Flash Interface:
-	AddressController addresscontroller(
+	AddressController #(.width(23)) addresscontroller(
 	 .clk(clk),
 	 .inc(address_inc),
 	 .dec(address_dec),
