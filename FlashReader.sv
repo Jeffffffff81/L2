@@ -1,137 +1,100 @@
+`default_nettype none
+
+//FlashReader will read data from 
+//the flash memory, and pass it to the audio controller.
 module FlashReader(
-	input 					clk, 
+	input logic  			clk, 
+	input	logic				rst,
 	
 	//Interface to flash:	
-	input 					waitrequest, 
-	output logic 			read, 
-	input[31:0] 			readdata,
-	input 					readdatavalid,
-	output logic[3:0] 	byteenable,
+	input logic				flsh_waitrequest, 
+	output logic 			flsh_read, 
+	input logic[31:0]		flsh_readdata,
+	input logic 			flsh_readdatavalid,
+	output logic[3:0] 	flsh_byteenable,
 	
 	//Interface address controller:
-	output logic 			inc,
-	output logic			 dec,
-	output logic 			reset,
+	output logic 			address_inc,
+	output logic			address_dec,
+	output logic 			address_rst,
 	
 	//Interface to audio register:
-	output logic 			enable,
-	output logic[15:0]  audioout,
+	output logic 			audio_enable,
+	output logic[15:0]   audio_out,
 	
 	//interface to slowClockTrigger:
-	input			 			samplenow //this is not edge sensitive
-	); 
+	input	logic	 			startsamplenow //this is not edge sensitive
+	);
+	input logic clk;
 	
 	
-	assign byteenable = 4'b1111; //for simplicity, just get all 32 bits everytime.
-	assign start = samplenow; //for now, we start if the sample clock tells us.
+	assign flsh_byteenable = 4'b1111; //for simplicity, just get all 32 bits everytime.
+	wire start = startsamplenow; //for now, we start if the sample clock tells us.
+
+	//state assignment. In this FSM, its very difficult to encode the state bits as outputs.
+	//for example, we have no idea what readdata may be, and that must be passed as an output.
+	//instead, we will register the outputs to avoid glitches.
 	
-	logic[3:0] next_state, state;
+	logic state[3:0];
+	localparam idlea = 4'b0000;
+	localparam a1 = 4'b0001;
+	localparam a2 = 4'b0010;
 	
-	parameter IDLE_A = 4'b0000; //wait for start, set inc to 0
-	parameter S0_A = 4'b0001; //set read to one
-	parameter S1_A = 4'b0010; //set read to 0, wait for !waitrequest and validdata, set audio_out and enable.
+	localparam idleb = 4'b0011;
+	localparam b1 = 4'b0100;
+	localparam b2 = 4'b0101;
+	localparam b3 = 4'b0110;
 	
-  parameter IDLE_B = 4'b0011; //wait for start, set enable to 0
-	parameter S0_B = 4'b0100;  //set read to one
-	parameter S1_B = 4'b0101;	//set read to 0. same as S1_A
-	parameter S2_B = 4'b0110;  //set inc to 1. set enable to 0
+	//next state logic:
+	always_ff @(posedge clk or negedge rst)
+	 begin
+	      if (~rst)
+			begin
+			   state <= idlea;
+		   end else
+			begin
+					case (state)
+					idlea : if (start)
+								state <= a1;				    
+							 else					 
+								state <= idlea;
+					a1 :	state <= idlea;
+					
+					default: state <= idlea;
+			endcase
+			end
+	end
 	
-	always_ff @(posedge clk)
-		state <= next_state;
-	
-	always_comb 
-	 casex(state)
-	   default: begin
-	             next_state = IDLE_A;
-	             read = 1'b0;
-	             inc = 1'b0;
-	             dec = 1'b0;
-	             reset = 1'b0;
-	             enable = 1'b0;
-	             audioout = 16'b0;
-	            end
-	            
-	    IDLE_A: begin
-	             if(start) 
-	               next_state = S0_A;
-	             else 
-	               next_state = IDLE_A; 
-	               
-	             read = 1'b0;
-	             inc = 1'b0;
-	             dec = 1'b0;
-	             reset = 1'b0;
-	             enable = 1'b0;
-	            end
-	            
-	    S0_A:   begin
-	             next_state = S1_A;
-	             read = 1'b1;
-	            end  
-	              
-	    S1_A:   begin
-	             if(!waitrequest & readdatavalid)
-	               next_state = IDLE_B;
-	             else
-	               next_state = S1_A;
-	             
-	             read = 1'b0;
-	             audioout = readdata[15:0];
-	             enable = readdatavalid;
-	            end
-	            
-	    IDLE_B: begin
-	             if(start) 
-	               next_state = S0_B;
-	             else 
-	               next_state = IDLE_B;
-	             
-	            	read = 1'b0;
-	             inc = 1'b0;
-	             dec = 1'b0;
-	             reset = 1'b0;
-	             enable = 1'b0;
-	            end
-	            
-	     S0_B:  begin
-	             next_state = S1_B;
-	             read = 1'b1;
-	            end
-	     S1_B:  begin
-	             if(!waitrequest & readdatavalid)
-	               next_state = S2_B;
-	             else
-	               next_state = S1_B;
-	             
-	             read = 1'b0;
-	             audioout = readdata[31:16];
-	             enable = readdatavalid;
-	            end
-	      S2_B: begin
-	             next_state = IDLE_A;
-	             inc = 1'b1;
-	             enable = 1'b0;
-	            end
-	             
-	 endcase
-	
-	/*
-	always_comb begin
-		casex({state, waitrequest, readdatavalid})
-			{IDLE_A, 1'bX, 1'bX}: {next_state, inc} = (start) ? {S0_A, 1'b0} : {IDLE_A, 1'b0} ;
-			{IDLE_B, 1'bX, 1'bX}: {next_state, enable} = (start) ? {S0_B, 1'b0} : {IDLE_B, 1'b0};
+	//output logic
+	always_comb
+		case(state)
+			idlea:   begin 
+						flsh_read = 0;
+						address_inc = 0;
+						address_dec = 0;
+						address_rst = 0;
+						audio_enable = 0;
+						audio_out = 0;
+						end
 			
-			{S0_A, 1'bX, 1'bX}: {next_state, read} = {S1_A, 1'b1};
-			{S1_A, 1'b1, 1'bX}: {next_state, audioout, enable} = {S1_A, readdata[15:0], 1'b0};
-			{S1_A, 1'bX, 1'b0}: {next_state, audioout, enable} = {S1_A, readdata[15:0], 1'b0};
-			{S1_A, 1'b0, 1'b1}: {next_state, audioout, enable} = {IDLE_B, readdata[15:0], 1'b1};
+			a1:	   begin 
+						flsh_read = 1;
+						address_inc = 0;
+						address_dec = 0;
+						address_rst = 0;
+						audio_enable = 0;
+						audio_out = 0;
+						end
 			
-			{S0_B, 1'bX, 1'bX}: {next_state, read} = {S1_B, 1'b1};
-			{S1_B, 1'b1, 1'bX}: {next_state, audioout, enable} = {S1_B, readdata[31:16], 1'b0};	
-			{S1_B, 1'bX, 1'b0}: {next_state, audioout, enable} = {S1_B, readdata[31:16], 1'b0};
-			{S1_B, 1'b0, 1'b1}: {next_state, audioout, enable} = {S2_B, readdata[31:16], 1'b1};
-			{S2_B}: {next_state, inc, enable} = {IDLE_A, 1'b1, 1'b0};
-			default: {next_state, read, inc, dec, reset, enable, audioout} = {IDLE_A, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 16'b0};
+			default: begin 
+						flsh_read = 0;
+						address_inc = 0;
+						address_dec = 0;
+						address_rst = 0;
+						audio_enable = 0;
+						audio_out = 0;
+						end
 		endcase
-	end*/
-endmodule
+	
+
+	endmodule

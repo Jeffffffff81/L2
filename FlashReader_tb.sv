@@ -1,71 +1,43 @@
 module FlashReader_tb();
-  logic clk;
-  
-  	//Interface to flash:	
-	logic 					waitrequest; 
-  logic 			read;
-	logic[31:0] 			readdata;
-	logic 					readdatavalid;
-  logic[3:0] 	byteenable;
+  logic 					clk;
+	logic					rst;
+	
+	//Interface to flash:	
+	logic 					flsh_waitrequest; 
+  logic 			flsh_read;
+	logic[31:0] 			flsh_readdata;
+	logic 					flsh_readdatavalid;
+	logic[3:0] 	flsh_byteenable;
 	
 	//Interface address controller:
-	logic 			inc;
-	logic			 dec;
-	logic 			reset;
+	logic 			address_inc;
+	logic			address_dec;
+	logic 			address_rst;
 	
 	//Interface to audio register:
-	logic 			enable;
-	logic[15:0]  audioout;
+	logic 			audio_enable;
+	logic[15:0]   audio_out;
 	
 	//interface to slowClockTrigger:
-	logic			 			samplenow; //this is not edge sensitive
-
-  FlashReader dut(
-    .clk(clk),
-    .waitrequest(waitrequest),
-    .read(read),
-    .readdata(readdata),
-    .readdatavalid(readdatavalid),
-    .byteenable(byteenable),
-    .inc(inc),
-    .dec(dec),
-    .reset(reset),
-    .enable(enable),
-    .audioout(audioout),
-    .samplenow(samplenow)
-  );
+	logic			 			startsamplenow; //this is not edge sensitive
+	
   
   initial begin
     forever begin
       clk = 1; #1;
       clk = 0; #1;
+      rst = 1;
     end
   end
   
   initial begin
-    waitrequest = 0;
-    readdata = 0;
-    readdatavalid = 0;
-    samplenow = 0;
+    startsamplenow = 0;
     #10;
-    samplenow = 1;
+    startsamplenow = 1;
     #2;
-    samplenow = 0;
+    startsamplenow = 0;
     #10
-    readdatavalid = 1;
-    readdata = 32'd256;
-    #2;
-    readdatavalid = 0;
-    #20;
-    samplenow = 1;
-    #2;
-    samplenow = 0;
-    #20;
-    readdatavalid = 1;
-    readdata = 32'd256;
-    #2;
-    readdatavalid = 0;
-    #20;
+    $stop;
     
     $stop;
   end
