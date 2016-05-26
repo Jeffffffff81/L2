@@ -173,6 +173,8 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 						audio_out = flsh_readdata[31:16];
 						end
 		endcase
+		
+		//TODO: register the outputs
 	
 
 	endmodule
