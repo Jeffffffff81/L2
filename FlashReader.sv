@@ -43,6 +43,7 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 	parameter b1 = 4'b0100;
 	parameter b2 = 4'b0101;
 	parameter b3 = 4'b0110;
+	parameter b4 = 4'b0111; //extra state to ensure we dont increment the address while reading audio data
 	
 	//next state logic:
 	always_ff @(posedge clk or negedge rst)
@@ -73,9 +74,31 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 						    end
 							 
 					idleb: begin 
-							 state <= idleb;
+							 if (start)
+								state <= b1;				    
+							 else					 
+								state <= idleb;
+							 end
+					
+					b1:	 begin 
+							 state <= b2;
+							 end
+					
+					b2:    begin 
+							 if(!flsh_waitrequest && flsh_readdatavalid)
+								state <= b3;
+							 else
+								state <= b2;
+						    end
+							 
+					b3:	 begin
+							 state <= b4;
 							 end
 							 
+					b4:	 begin
+							 state <= idlea;
+							 end
+		
 					default: state <= idlea;
 			endcase
 			end
@@ -115,15 +138,39 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 						address_inc = 0;
 						address_dec = 0;
 						address_rst = 0;
-						audio_out = flsh_readdata[15:0];;
+						audio_out = flsh_readdata[15:0];
 						end
-					
-			default: begin 
-						flsh_read = 0;
+						
+			b1:		begin 
+						flsh_read = 1;
 						address_inc = 0;
 						address_dec = 0;
 						address_rst = 0;
 						audio_out = 0;
+						end
+					
+			b2:		begin 
+						flsh_read = 0;
+						address_inc = 0;
+						address_dec = 0;
+						address_rst = 0;
+						audio_out = flsh_readdata[31:16];
+						end
+						
+			b3:	begin 
+						flsh_read = 0;
+						address_inc = 0;
+						address_dec = 0;
+						address_rst = 0;
+						audio_out = flsh_readdata[31:16];
+						end
+					
+			default: begin 
+						flsh_read = 0;
+						address_inc = 1;
+						address_dec = 0;
+						address_rst = 0;
+						audio_out = flsh_readdata[31:16];
 						end
 		endcase
 	

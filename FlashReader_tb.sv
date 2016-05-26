@@ -49,6 +49,7 @@ module FlashReader_tb();
     flsh_waitrequest = 0;
     flsh_readdata = 32'hDEADBEEF;
     flsh_readdatavalid = 0;
+    
     startsamplenow = 0;
     #10;
     startsamplenow = 1;
@@ -58,7 +59,17 @@ module FlashReader_tb();
     flsh_readdatavalid = 1;
     #2;
     flsh_readdatavalid= 0;
-    #10
+    #20
+    
+    startsamplenow = 1;
+    #2;
+    startsamplenow = 0;
+    #12;
+    flsh_readdatavalid = 1;
+    #2;
+    flsh_readdatavalid = 0;
+    #14
+    
     $stop;
     
   end
