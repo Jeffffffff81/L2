@@ -5,7 +5,7 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, kybrd_reset, startsamplenow,
 	
 	//I/O:
 	input logic clk;
-	input logic kybrd_forward, kybrd_pause;
+	input logic kybrd_forward, kybrd_pause, kybrd_reset;
 	input logic startsamplenow;
 	output logic[22:0] flsh_address;
 	input logic[31:0] flsh_readdata;
@@ -42,7 +42,7 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, kybrd_reset, startsamplenow,
 	
 	//Address controller. Connected between FlashReader and Flash Interface:
 	wire reset_address = (flsh_address >= 23'h7FFFF) || kybrd_reset;
-	AddressController #(.width(23)) addresscontroller(
+	AddressController #(.width(23), .MAX_ADDRESS(23'h7FFFF)) addresscontroller(
 	 .clk(clk),
 	 .rst(reset_address),
 	 .change(address_change),

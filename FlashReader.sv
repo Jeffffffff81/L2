@@ -75,7 +75,7 @@ module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh
 							 end
 							 
 					a2:    begin 
-							 if( flsh_readdatavalid) //DEBUG (no wait check) 
+							 if(flsh_readdatavalid) //DEBUG (no wait check) 
 								state <= idleb;
 							 else
 								state <= a2;  
@@ -83,7 +83,7 @@ module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh
 							 
 					idleb: begin 
 							 if (start)
-								state <= b1;	//DEBUG			    
+								state <= b1;			    
 							 else					 
 								state <= idleb;
 							 end

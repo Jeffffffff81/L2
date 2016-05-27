@@ -203,7 +203,7 @@ parameter character_colon = 8'h3A;          //':'
 parameter character_stop = 8'h2E;           //'.'
 parameter character_semi_colon = 8'h3B;   //';'
 parameter character_minus = 8'h2D;         //'-'
-parameter character_divide = 8'h2F;         //'/'
+parameter charaspeed_up_event_triggercter_divide = 8'h2F;         //'/'
 parameter character_plus = 8'h2B;          //'+'
 parameter character_comma = 8'h2C;          // ','
 parameter character_less_than = 8'h3C;    //'<'
@@ -221,19 +221,27 @@ wire Sample_Clk_Signal;
 //=======================================================================================================================
 //
 // Insert your code for Lab2 here!
-//clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address, 
-//	flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,audio_data);
-//
+// 
+
 wire startsamplenow;
 wire [15:0] debug;
 wire [15:0] debug_address;
 wire [15:0] audio_data_16bit;
 wire sample_rate_clock;
+wire [31:0] sample_rate_divisor;
+
+frequencyDivisorGenerator(
+	.key_0(speed_down_event),
+	.key_1(speed_up_event),
+	.key_2(speed_reset_event),
+	.clk(CLK_50M),
+	.frequency_divisor(sample_rate_divisor)
+);
 
 frequencyDivider(
 	.clk_in(CLK_50M),
 	.clk_out(sample_rate_clock),
-	.divisor(32'd1136)
+	.divisor(sample_rate_divisor)
 );
 
 async_trap_and_reset_oneshot(
@@ -384,7 +392,7 @@ wire scope_enable_source = SW[8];
 wire choose_LCD_or_SCOPE = SW[9];
 
 
-doublesync user_scope_enable_sync1(.indata(scope_enable_source),
+doublesync user_speed_reset_eventscope_enable_sync1(.indata(scope_enable_source),
                   .outdata(user_scope_enable),
                   .clk(CLK_50M),
                   .reset(1'b1)); 
