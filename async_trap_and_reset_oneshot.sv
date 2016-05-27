@@ -1,6 +1,6 @@
 module async_trap_and_reset_oneshot (async_sig, outclk, out_sync_sig, auto_reset, reset);
 /* this module traps an asyncronous signal async_sig and syncronizes it via 2 flip-flops to outclk. The resulting
-   signal is named out_sync_sig. auto_reset tells the module whether to do an auto-reset of out_sync_sig after 2 clocks.
+   signal is named out_sync_sig. auto_reset tells the module whether to do an auto-reset of out_sync_sig after 1 clock.
    reset is an asynchronous reset signal. The reset signal is active LOW. */
 
 

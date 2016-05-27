@@ -2,7 +2,7 @@ module FlashReader_tb();
   logic 					clk;
   
   //Interface to keyboard:
-	logic					pause;
+	logic					kybrd_pause;
 	
 	//Interface to flash:	
 	logic 					flsh_waitrequest; 
@@ -23,7 +23,7 @@ module FlashReader_tb();
 	
 	FlashReader dut(
 	 .clk(clk),
-	 .pause(pause),
+	 .kybrd_pause(kybrd_pause),
 	 .flsh_waitrequest(flsh_waitrequest),
 	 .flsh_read(flsh_read),
 	 .flsh_readdata(flsh_readdata),
@@ -44,7 +44,7 @@ module FlashReader_tb();
   
   initial begin
     flsh_waitrequest = 0;
-    pause = 0;
+    kybrd_pause = 0;
     flsh_readdata = 32'hDEADBEEF;
     flsh_readdatavalid = 0;
     

@@ -2,14 +2,15 @@
 
 //FlashReader will read data from 
 //the flash memory, and pass it to the audio controller.
-module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,
-	address_change,audio_enable,audio_out,startsamplenow);
+module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,
+	address_change,audio_enable,audio_out,startsamplenow, debug);
 	
 	/************************I/O*************************/
 	input logic  			clk;
+	output logic [15:0]	debug;
 	
 	//keyboard interface:
-	input logic 			pause;
+	input logic 			kybrd_pause;
 	
 	//Interface to flash:	
 	input logic				flsh_waitrequest;
@@ -32,7 +33,7 @@ module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readd
 	
 	
 	//internal wires:
-	wire start = startsamplenow & !pause;
+	wire start = startsamplenow & !kybrd_pause;
 			
 
 	//state encoding: {state bits}, {flsh_read}, {address_change}, {audio_use_lower}
@@ -55,7 +56,7 @@ module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readd
 	assign flsh_byteenable = 4'b1111; //TODO: include this in state bits
 	assign audio_enable = flsh_readdatavalid;
 	assign audio_out = state[0] ? flsh_readdata[15:0] : flsh_readdata[31:16];
-	
+	assign debug = {6'b0, flsh_waitrequest,flsh_readdatavalid,4'b0,state[6:3]};
 	
 	//next state logic:
 	always_ff @(posedge clk)
@@ -70,19 +71,19 @@ module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readd
 							 end
 							 
 					a1:	 begin 
-							 state <= a2;
+							 state <= a2; 
 							 end
 							 
 					a2:    begin 
-							 if(!flsh_waitrequest && flsh_readdatavalid)
+							 if( flsh_readdatavalid) //DEBUG (no wait check) 
 								state <= idleb;
 							 else
-								state <= a2;
+								state <= a2;  
 						    end
 							 
 					idleb: begin 
 							 if (start)
-								state <= b1;				    
+								state <= b1;	//DEBUG			    
 							 else					 
 								state <= idleb;
 							 end
@@ -92,7 +93,7 @@ module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readd
 							 end
 					
 					b2:    begin 
-							 if(!flsh_waitrequest && flsh_readdatavalid)
+							 if(flsh_readdatavalid) //DEBUG (no wait check)
 								state <= b3;
 							 else
 								state <= b2;

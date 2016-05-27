@@ -31,6 +31,8 @@ module MusicPlayer_tb();
   
   initial begin
     startsamplenow = 0;
+    kybrd_forward = 1;
+    kybrd_pause = 0;
     flsh_waitrequest = 0;
     
     flsh_readdata = 32'hdeadbeef;

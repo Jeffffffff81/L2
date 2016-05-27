@@ -1,5 +1,7 @@
+`default_nettype none
+
 module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address, 
-	flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable, audio_data);
+	flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,audio_data,debug, debug_address);
 	
 	//I/O:
 	input logic clk;
@@ -11,9 +13,13 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address
 	output logic flsh_read;
 	output logic[3:0] flsh_byteenable;
 	output logic [15:0] audio_data;
+	output logic [15:0] debug;
+	output logic [15:0] debug_address;
+	
+	assign debug_address = flsh_address[15:0];
 	
 	//internal wires:
-	wire address_inc, address_dec, address_rst;
+	wire address_change;
 	wire audio_enable;
 	wire[15:0] audio_fsmout;
 	
@@ -21,26 +27,25 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address
 	//The FlashReader FSM:
 	FlashReader flashReader(
 		.clk(clk),
-		.rst(1'b1),
+		.kybrd_pause(kybrd_pause),
 		.flsh_waitrequest(flsh_waitrequest),
 		.flsh_read(flsh_read),
 		.flsh_readdata(flsh_readdata),
 		.flsh_readdatavalid(flsh_readdatavalid),
 		.flsh_byteenable(flsh_byteenable),
-		.address_inc(address_inc),
-		.address_dec(address_dec),
-		.address_rst(address_rst),
+		.address_change(address_change),
 		.audio_enable(audio_enable),
 		.audio_out(audio_fsmout),
-		.startsamplenow(startsamplenow)
+		.startsamplenow(startsamplenow),
+		.debug(debug)
 	);
 	
 	//Address controller. Connected between FlashReader and Flash Interface:
 	AddressController #(.width(23)) addresscontroller(
 	 .clk(clk),
-	 .inc(address_inc),
-	 .dec(address_dec),
-	 .rst(address_rst),
+	 .rst(1'b0),
+	 .change(address_change),
+	 .forward(kybrd_forward),
 	 .address(flsh_address)
 	);
 	
