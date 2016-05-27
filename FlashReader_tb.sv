@@ -1,6 +1,8 @@
 module FlashReader_tb();
   logic 					clk;
-	logic					rst;
+  
+  //Interface to keyboard:
+	logic					pause;
 	
 	//Interface to flash:	
 	logic 					flsh_waitrequest; 
@@ -10,9 +12,7 @@ module FlashReader_tb();
 	logic[3:0] 	flsh_byteenable;
 	
 	//Interface address controller:
-	logic 			address_inc;
-	logic			address_dec;
-	logic 			address_rst;
+	logic 			address_change;
 	
 	//Interface to audio register:
 	logic 			audio_enable;
@@ -23,15 +23,13 @@ module FlashReader_tb();
 	
 	FlashReader dut(
 	 .clk(clk),
-	 .rst(rst),
+	 .pause(pause),
 	 .flsh_waitrequest(flsh_waitrequest),
 	 .flsh_read(flsh_read),
 	 .flsh_readdata(flsh_readdata),
 	 .flsh_readdatavalid(flsh_readdatavalid),
 	 .flsh_byteenable(flsh_byteenable),
-	 .address_inc(address_inc),
-	 .address_dec(address_dec),
-	 .address_rst(address_rst),
+	 .address_change(address_change),
 	 .audio_enable(audio_enable),
 	 .audio_out(audio_out),
 	 .startsamplenow(startsamplenow)
@@ -39,7 +37,6 @@ module FlashReader_tb();
   
   initial begin
     forever begin
-      rst = 1;
       clk = 1; #1;
       clk = 0; #1;
     end
@@ -47,6 +44,7 @@ module FlashReader_tb();
   
   initial begin
     flsh_waitrequest = 0;
+    pause = 0;
     flsh_readdata = 32'hDEADBEEF;
     flsh_readdatavalid = 0;
     

@@ -2,11 +2,14 @@
 
 //FlashReader will read data from 
 //the flash memory, and pass it to the audio controller.
-module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,
-	address_inc,address_dec,address_rst,audio_enable,audio_out,startsamplenow);
+module FlashReader(clk,pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,
+	address_change,audio_enable,audio_out,startsamplenow);
 	
+	/************************I/O*************************/
 	input logic  			clk;
-	input	logic				rst;
+	
+	//keyboard interface:
+	input logic 			pause;
 	
 	//Interface to flash:	
 	input logic				flsh_waitrequest;
@@ -16,9 +19,7 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 	output logic[3:0] 	flsh_byteenable;
 	
 	//Interface address controller:
-	output logic 			address_inc;
-	output logic			address_dec;
-	output logic 			address_rst;
+	output logic 			address_change;
 	
 	//Interface to audio register:
 	output logic 			audio_enable;
@@ -27,31 +28,37 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 	//interface to slowClockTrigger:
 	input	logic	 			startsamplenow; //this is not edge sensitive
 	
-	assign flsh_byteenable = 4'b1111; //for simplicity, just get all 32 bits everytime.
-	wire start = startsamplenow; //for now, we start if the sample clock tells us.
+	/*****************************************************************/
+	
+	
+	//internal wires:
+	wire start = startsamplenow & !pause;
+			
 
-	//state assignment. In this FSM, its very difficult to encode the state bits as outputs.
-	//for example, we have no idea what readdata may be, and that must be passed as an output.
-	//instead, we will register the outputs to avoid glitches.
+	//state encoding: {state bits}, {flsh_read}, {address_change}, {audio_use_lower}
+	//audio enable is not assigned to a state bit. it is directly assigned to flsh_readdatavalid.
+   reg[6:0] state = 0;
+	parameter idlea = 7'b0000_0_0_0;
+	parameter a1 = 7'b0001_1_0_1;
+	parameter a2 = 7'b0010_0_0_1;
 	
-  reg[3:0] state = 0;
-	parameter idlea = 4'b0000;
-	parameter a1 = 4'b0001;
-	parameter a2 = 4'b0010;
+	parameter idleb = 7'b0011_0_0_1;
+	parameter b1 = 7'b0100_1_0_0;
+	parameter b2 = 7'b0101_0_0_0;
+	parameter b3 = 7'b0110_0_0_0;
+	parameter b4 = 7'b0111_0_1_0; //extra state to ensure we dont increment the address while reading audio data
 	
-	parameter idleb = 4'b0011;
-	parameter b1 = 4'b0100;
-	parameter b2 = 4'b0101;
-	parameter b3 = 4'b0110;
-	parameter b4 = 4'b0111; //extra state to ensure we dont increment the address while reading audio data
+	//simple output logic:
+	assign flsh_read = state[2];
+	assign address_change = state[1];
+	
+	assign flsh_byteenable = 4'b1111; //TODO: include this in state bits
+	assign audio_enable = flsh_readdatavalid;
+	assign audio_out = state[0] ? flsh_readdata[15:0] : flsh_readdata[31:16];
+	
 	
 	//next state logic:
-	always_ff @(posedge clk or negedge rst)
-	 begin
-	      if (~rst)
-			begin
-			   state <= idlea;
-		   end else
+	always_ff @(posedge clk)
 			begin
 					case (state)
 					
@@ -101,80 +108,6 @@ module FlashReader(clk,rst,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdat
 		
 					default: state <= idlea;
 			endcase
-			end
-	end
+		end
 	
-	//output logic
-	assign audio_enable = flsh_readdatavalid;
-	
-	always_comb
-		case(state)
-			idlea:   begin 
-						flsh_read = 0;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = 0;
-						end
-			
-			a1:	   begin 
-						flsh_read = 1;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = 0;
-						end
-						
-			a2:		begin 
-						flsh_read = 0;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = flsh_readdata[15:0];
-						end
-					
-			idleb:	begin 
-						flsh_read = 0;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = flsh_readdata[15:0];
-						end
-						
-			b1:		begin 
-						flsh_read = 1;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = 0;
-						end
-					
-			b2:		begin 
-						flsh_read = 0;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = flsh_readdata[31:16];
-						end
-						
-			b3:	begin 
-						flsh_read = 0;
-						address_inc = 0;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = flsh_readdata[31:16];
-						end
-					
-			default: begin 
-						flsh_read = 0;
-						address_inc = 1;
-						address_dec = 0;
-						address_rst = 0;
-						audio_out = flsh_readdata[31:16];
-						end
-		endcase
-		
-		//TODO: register the outputs
-	
-
 	endmodule
