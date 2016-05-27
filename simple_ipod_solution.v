@@ -229,7 +229,17 @@ wire [15:0] debug_address;
 wire [15:0] audio_data_16bit;
 wire sample_rate_clock;
 wire [31:0] sample_rate_divisor;
+wire kybrd_forward, kybrd_start;
 
+//Keyboard interface:
+musicController(
+	.clk(CLK_50M),
+	.keyboard_input(kbd_received_ascii_code),
+	.forward(kybrd_forward),
+	.start(kybrd_start)
+);
+
+//Samplerate/speed related modules:
 frequencyDivisorGenerator(
 	.key_0(speed_down_event),
 	.key_1(speed_up_event),
@@ -252,10 +262,11 @@ async_trap_and_reset_oneshot(
 	.reset(1'b1)
 );
 
+//Flash to audio communicator:
 MusicPlayer musicplayer(
 	.clk(CLK_50M),
-	.kybrd_forward(1'b1),
-	.kybrd_pause(1'b0),
+	.kybrd_forward(kybrd_forward),
+	.kybrd_pause(!kybrd_start),
 	.kybrd_reset(1'b0),
 	.startsamplenow(startsamplenow),
 	.flsh_address(flash_mem_address),
@@ -275,7 +286,6 @@ wire    [22:0]  flash_mem_address;
 wire    [31:0]  flash_mem_readdata;
 wire            flash_mem_readdatavalid;
 wire    [3:0]   flash_mem_byteenable;
-
 
 flash flash_inst (
     .clk_clk                 (CLK_50M),
