@@ -1,6 +1,6 @@
 `default_nettype none
 
-module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address, 
+module MusicPlayer(clk, kybrd_forward, kybrd_pause, kybrd_reset, startsamplenow, flsh_address, 
 	flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,audio_data,debug, debug_address);
 	
 	//I/O:
@@ -41,13 +41,15 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, startsamplenow, flsh_address
 	);
 	
 	//Address controller. Connected between FlashReader and Flash Interface:
+	wire reset_address = (flsh_address >= 23'h7FFFF) || kybrd_reset;
 	AddressController #(.width(23)) addresscontroller(
 	 .clk(clk),
-	 .rst(1'b0),
+	 .rst(reset_address),
 	 .change(address_change),
 	 .forward(kybrd_forward),
 	 .address(flsh_address)
 	);
+	
 	
 	//register with enable to hold audio data:
 	always_ff @(posedge clk)

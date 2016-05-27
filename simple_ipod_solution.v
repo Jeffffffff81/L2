@@ -233,7 +233,7 @@ wire sample_rate_clock;
 frequencyDivider(
 	.clk_in(CLK_50M),
 	.clk_out(sample_rate_clock),
-	.divisor(32'd2272)
+	.divisor(32'd1136)
 );
 
 async_trap_and_reset_oneshot(
@@ -248,6 +248,7 @@ MusicPlayer musicplayer(
 	.clk(CLK_50M),
 	.kybrd_forward(1'b1),
 	.kybrd_pause(1'b0),
+	.kybrd_reset(1'b0),
 	.startsamplenow(startsamplenow),
 	.flsh_address(flash_mem_address),
 	.flsh_waitrequest(flash_mem_waitrequest),
