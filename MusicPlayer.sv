@@ -44,7 +44,7 @@ module MusicPlayer(clk, kybrd_forward, kybrd_pause, kybrd_reset, startsamplenow,
 	wire reset_address = (flsh_address >= 23'h7FFFF) || kybrd_reset;
 	AddressController #(.width(23), .MAX_ADDRESS(23'h7FFFF)) addresscontroller(
 	 .clk(clk),
-	 .rst(reset_address),
+	 .rst(kybrd_reset),
 	 .change(address_change),
 	 .forward(kybrd_forward),
 	 .address(flsh_address)

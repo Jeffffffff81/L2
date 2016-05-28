@@ -229,14 +229,14 @@ wire [15:0] debug_address;
 wire [15:0] audio_data_16bit;
 wire sample_rate_clock;
 wire [31:0] sample_rate_divisor;
-wire kybrd_forward, kybrd_start;
+wire kybrd_forward, kybrd_pause;
 
 //Keyboard interface:
 musicController(
 	.clk(CLK_50M),
 	.keyboard_input(kbd_received_ascii_code),
 	.forward(kybrd_forward),
-	.start(kybrd_start)
+	.pause(kybrd_pause)
 );
 
 //Samplerate/speed related modules:
@@ -266,7 +266,7 @@ async_trap_and_reset_oneshot(
 MusicPlayer musicplayer(
 	.clk(CLK_50M),
 	.kybrd_forward(kybrd_forward),
-	.kybrd_pause(!kybrd_start),
+	.kybrd_pause(kybrd_pause),
 	.kybrd_reset(1'b0),
 	.startsamplenow(startsamplenow),
 	.flsh_address(flash_mem_address),

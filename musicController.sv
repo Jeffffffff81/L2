@@ -1,9 +1,9 @@
-module musicController(
-	input logic clk,
-	input logic [7:0] keyboard_input,
-	output logic forward,
-	output logic start
-);
+module musicController(clk, keyboard_input, forward, pause);
+
+ input logic clk;
+ input logic [7:0] keyboard_input;
+ output reg forward = 1;
+ output reg pause = 1;
 
  parameter character_B = 8'h42;
  parameter character_D = 8'h44;
@@ -18,10 +18,8 @@ begin
 	else if(keyboard_input == character_B)
 		forward <= 1'b0;
 	else if(keyboard_input == character_E)
-		start <= 1'b1;
+		pause <= 1'b0;
 	else if(keyboard_input == character_D)
-		start <= 1'b0;
+		pause <= 1'b1;
 	end
 endmodule
-
-//sean is the best

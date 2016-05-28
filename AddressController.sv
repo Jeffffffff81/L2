@@ -9,15 +9,16 @@ module AddressController(clk, rst, change, forward, address);
 	output reg[width-1:0] address = 0;
 
 	always_ff @(posedge clk) begin
-		if(rst) address <= 0; 
+		if(rst || address >= MAX_ADDRESS) 
+			address <= 0; 
+			
+		//TODO: case for if going backwards and address == 0
 		
-		else if (change) begin
-			if (!forward && address == 0)
-				address <= MAX_ADDRESS; //If we are going backwards, we want to loop to max address.
-			else
-				address <= forward ? address + 1 : address - 1;
-		end
-		else address <= address;
+		else if (change) 
+			address <= forward ? address + 1 : address - 1;
+		
+		else 
+			address <= address;
 	end
 endmodule
 		
