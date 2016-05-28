@@ -232,7 +232,7 @@ wire [31:0] sample_rate_divisor;
 wire kybrd_forward, kybrd_pause;
 
 //Keyboard interface:
-musicController(
+musicController musiccontroller(
 	.clk(CLK_50M),
 	.keyboard_input(kbd_received_ascii_code),
 	.forward(kybrd_forward),
@@ -240,7 +240,7 @@ musicController(
 );
 
 //Samplerate/speed related modules:
-frequencyDivisorGenerator(
+frequencyDivisorGenerator frequencydivisorgenerator(
 	.key_0(speed_down_event),
 	.key_1(speed_up_event),
 	.key_2(speed_reset_event),
@@ -248,13 +248,13 @@ frequencyDivisorGenerator(
 	.frequency_divisor(sample_rate_divisor)
 );
 
-frequencyDivider(
+frequencyDivider frequencydivider(
 	.clk_in(CLK_50M),
 	.clk_out(sample_rate_clock),
 	.divisor(sample_rate_divisor)
 );
 
-async_trap_and_reset_oneshot(
+async_trap_and_reset_oneshot samplerateclockpulsegenerator(
 	.async_sig(sample_rate_clock),
 	.outclk(CLK_50M),
 	.out_sync_sig(startsamplenow),
