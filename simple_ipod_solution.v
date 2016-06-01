@@ -229,18 +229,25 @@ wire [15:0] debug_address;
 wire [15:0] audio_data_16bit;
 wire sample_rate_clock;
 wire [31:0] sample_rate_divisor;
-wire kybrd_forward, kybrd_pause;
+wire kybrd_forward, kybrd_pause, kybrd_reset;
+wire data_ready;  
+
+//determines if the keyboard data is ready
+ async_trap_and_reset_oneshot make_kbd_ready_signal(.async_sig(kbd_data_ready), .outclk(CLK_50M), 
+   .out_sync_sig(data_ready), .auto_reset(1'b1), .reset(1'b1));
 
 //Keyboard interface:
-musicController musiccontroller(
+musicController(
 	.clk(CLK_50M),
 	.keyboard_input(kbd_received_ascii_code),
 	.forward(kybrd_forward),
-	.pause(kybrd_pause)
+	.pause(kybrd_pause),
+	.restart(kybrd_reset),
+	.kybrd_data_ready(data_ready)
 );
 
 //Samplerate/speed related modules:
-frequencyDivisorGenerator frequencydivisorgenerator(
+frequencyDivisorGenerator(
 	.key_0(speed_down_event),
 	.key_1(speed_up_event),
 	.key_2(speed_reset_event),
@@ -248,13 +255,13 @@ frequencyDivisorGenerator frequencydivisorgenerator(
 	.frequency_divisor(sample_rate_divisor)
 );
 
-frequencyDivider frequencydivider(
+frequencyDivider(
 	.clk_in(CLK_50M),
 	.clk_out(sample_rate_clock),
 	.divisor(sample_rate_divisor)
 );
 
-async_trap_and_reset_oneshot samplerateclockpulsegenerator(
+async_trap_and_reset_oneshot(
 	.async_sig(sample_rate_clock),
 	.outclk(CLK_50M),
 	.out_sync_sig(startsamplenow),
@@ -262,12 +269,13 @@ async_trap_and_reset_oneshot samplerateclockpulsegenerator(
 	.reset(1'b1)
 );
 
+
 //Flash to audio communicator:
 MusicPlayer musicplayer(
 	.clk(CLK_50M),
 	.kybrd_forward(kybrd_forward),
 	.kybrd_pause(kybrd_pause),
-	.kybrd_reset(1'b0),
+	.kybrd_reset(kybrd_reset),
 	.startsamplenow(startsamplenow),
 	.flsh_address(flash_mem_address),
 	.flsh_waitrequest(flash_mem_waitrequest),
