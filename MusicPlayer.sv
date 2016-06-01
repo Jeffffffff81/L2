@@ -1,5 +1,33 @@
 `default_nettype none
 
+/*
+ * This module takes input from the keyboard and the flash controller, and outputs to 
+ * the audio controller. It contains an FSM to talk to the flash controller, an FSM
+ * to controll the address, and a register to hold the audio data.
+ *
+ * inputs:	clk: Clock that all FSM's run on
+ *				kybrd_forward: Set if the song is playing forward
+ *				kybrd_pause: Set of the song is pause.
+ *				kybrd_reset: This input should pulse for one cycle indicating that the 
+ *								 flash address should be set to 0
+ *				startsamplenow: A pulse which occurs on the edge of the samplerate clock 
+ *									 (Normally 22KHz)
+ *				flsh_waitrequest: This is set if the flash controller cannot 
+ *									   perfom anymore pipelined reads
+ *				flsh_readdata: The 32 bit data from flash memory
+ *				flsh_readdatavalid: Set if flsh_readdata represents valid data
+ *				
+ *
+ *	outputs: flsh_address: The address which goes into the flash controller			
+ * 			flsh_byteenable: used to determine which bytes are needed from
+ *										flash memory
+ *				audio_data: 16 bit audio data from flash memory
+ *				debug: general debug info. It includes current state, and status of
+ *						 flsh_waitrequest and flsh_readdatavalid
+ *				debug_address: The current address being given to flash memory
+ *
+ */
+
 module MusicPlayer(clk, kybrd_forward, kybrd_pause, kybrd_reset, startsamplenow, flsh_address, 
 	flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,audio_data,debug, debug_address);
 	

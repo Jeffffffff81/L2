@@ -1,5 +1,13 @@
 `default_nettype wire
 
+/*
+ * Produces a clock which is divisor times slower than clk_in.
+ *
+ * inputs: clk_in: The input clock
+ *			  divisor: How much slower clk_out will be compared to clk_in
+ *
+ *	outputs:	clk_out: The output clock
+ */
 module frequencyDivider(clk_in, clk_out, divisor);
 	input logic clk_in;
 	input logic[31:0]  divisor;

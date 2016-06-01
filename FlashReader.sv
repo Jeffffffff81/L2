@@ -1,7 +1,31 @@
 `default_nettype none
 
-//FlashReader will read data from 
-//the flash memory, and pass it to the audio controller.
+/*
+ * FlashReader is an FSM which talks directly to the flash controller.
+ * It handles the signals which tell the flash reader to bo begin a read, and it also selects the
+ * relevant data from the data it recieves (whether to use to upper or lower 16 bits).
+ * It does not directly control the address however, this is done by AddressController.
+ *
+ * inputs:	clk: Clock which this FSM runs on
+ *				kybrd_pause: The FSM will stay in an idle state while this is true.
+ *				flsh_waitrequest: The FSM must wait until this 
+ *									   is de-asserted until it can continue a read
+ *				flsh_readdata: 32 bit data from flash memory
+ *				flsh_readdatavalid: Asserted when flsh_readdata is valid
+ *				startsamplenow: Pulsed on each clock edge of the slower samplerate clock. 
+ *									 Usually this is 22KHz
+ *			
+ *				
+ * outputs:	flsh_read: This is pulsed for one clock cycle when data is requested 
+ *							  from the flash controller.
+ *				flsh_byteenable: This determines which bytes are needed from flash memory
+ *				address_change: This is pulsed when the FSM is done reading a complete sample.
+ *									 It causes address to the flash controller to either increment
+ *									 or decrement.
+ *				audio_enable: Enables the audio register to read new data
+ *				audio_out: 16 bit audio output data. 
+ *				debug: Includes the current state, and the values of flsh_waitrequest and flsh_readdata
+ */
 module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh_readdatavalid,flsh_byteenable,
 	address_change,audio_enable,audio_out,startsamplenow, debug);
 	
@@ -70,8 +94,11 @@ module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh
 								state <= idlea;
 							 end
 							 
-					a1:	 begin 
-							 state <= a2; 
+					a1:	 begin
+							 if(!flsh_waitrequest)
+								state <= a2;
+							 else
+								state <= a1;
 							 end
 							 
 					a2:    begin 
@@ -89,7 +116,10 @@ module FlashReader(clk,kybrd_pause,flsh_waitrequest,flsh_read,flsh_readdata,flsh
 							 end
 					
 					b1:	 begin 
-							 state <= b2;
+							 if(!flsh_waitrequest)
+								state <= b2;
+							 else
+							   state <= b1;
 							 end
 					
 					b2:    begin 
