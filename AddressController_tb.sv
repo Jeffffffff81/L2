@@ -84,34 +84,6 @@ module AddressController_tb();
     change = 0;
     #4;
     
-     change = 0;
-    #4;
-    change = 1;
-    #2;
-    change = 0;
-    #4;
-    
-     change = 0;
-    #4;
-    change = 1;
-    #2;
-    change = 0;
-    #4;
-    
-     change = 0;
-    #4;
-    change = 1;
-    #2;
-    change = 0;
-    #4;
-    
-     change = 0;
-    #4;
-    change = 1;
-    #2;
-    change = 0;
-    #4;
-    
     change = 0;
     #4;
     change = 1;
@@ -195,7 +167,8 @@ module AddressController_tb();
     #2;
     change = 0;
     #4;
-    
+
+    //start moving back:    
     forward = 0;
     
     change = 0;
@@ -254,6 +227,11 @@ module AddressController_tb();
     change = 0;
     #4;
     
+    //test reset:
+    rst = 1;
+    #2;
+    rst = 0;
+
     change = 0;
     #4;
     change = 1;
