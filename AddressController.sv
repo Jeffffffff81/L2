@@ -4,8 +4,9 @@
  * This module controls which address is fed into flash memory
  * 
  * inputs:	clk: The clock which this runs on
- *				rst: Synchronous reset. if set, the address will be 0.
- *					  typically it should be set for one clock cycle
+ *				rst: Synchronous reset. if set, the address will be 0
+ *					  on the next clock edge.
+ *					  typically it should be set for one clock cycle.
  *				change: This should be pulsed for one clock cycle.
  *						  It will cause the address to either increment
  *						  or decrement, depending on the value of forward

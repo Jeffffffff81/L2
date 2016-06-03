@@ -232,6 +232,7 @@ wire [31:0] sample_rate_divisor;
 wire kybrd_forward, kybrd_pause, kybrd_reset;
 wire data_ready;  
 
+//******************KEYBOARD*********************//
 //determines if the keyboard data is ready
  async_trap_and_reset_oneshot make_kbd_ready_signal(.async_sig(kbd_data_ready), .outclk(CLK_50M), 
    .out_sync_sig(data_ready), .auto_reset(1'b1), .reset(1'b1));
@@ -246,7 +247,7 @@ musicController(
 	.kybrd_data_ready(data_ready)
 );
 
-//Samplerate/speed related modules:
+//******************BUTTONS/SAMPLERATE*******************//
 frequencyDivisorGenerator(
 	.key_0(speed_down_event),
 	.key_1(speed_up_event),
@@ -269,8 +270,7 @@ async_trap_and_reset_oneshot(
 	.reset(1'b1)
 );
 
-
-//Flash to audio communicator:
+//**************AUDIO/FLASH**************//
 MusicPlayer musicplayer(
 	.clk(CLK_50M),
 	.kybrd_forward(kybrd_forward),

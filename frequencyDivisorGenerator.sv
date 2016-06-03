@@ -4,15 +4,23 @@
 												 default speed is 22KHz.  
 
   inputs:	key_0: when key_0 goes high, it indicates that KEY0 on the DE1 SoC was pressed
-					  and that the speed of the song should increase
-				key_1: when key_1 goes high, it indicates that KEY1 on the DE1 SoC was pressed
 					  and that the speed of the song should decrease
+				key_1: when key_1 goes high, it indicates that KEY1 on the DE1 SoC was pressed
+					  and that the speed of the song should increase
 				key_2: when key_2 goes high, it indicates that KEY2 on the DE1 SoC was pressed
 					  and that the speed of the song should return back to the starting value
 					  of 22KHz. 
 				clk: the 50MHz clock 
 				
- outputs: frequency_divisor
+Parameters:	max_divisor: the maximum value for the divisor. This parameter is the 
+								 divisor that will produce the slowest speed that we are allowing
+								 the song to play at. 
+				min_divisor: the minimum value for the divisor. This parameter is the 
+								 divisor that will produce the largest speed that we are allowing
+								 the song to play at. 
+								 
+				
+ outputs: frequency_divisor: the amount to divide the 50MHz clock by 
 
 */
 

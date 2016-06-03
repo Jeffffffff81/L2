@@ -28,6 +28,16 @@ module frequencyDivisorGenerator_tb();
 		key_1 = 1;
 		key_2 = 0;
 		#20;
+
+		key_0 = 1;
+		key_1 = 1;
+		key_2 = 0;
+		#20;
+
+		key_2 = 1;
+		#2;
+		key_2 = 0;
+		#20;
 		
 		$stop;
 	end
